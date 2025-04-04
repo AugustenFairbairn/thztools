@@ -3424,3 +3424,35 @@ def fit(
         success=bool(result.success),
         diagnostic=result,
     )
+def etfe(
+    x:ArrayLike,
+    y:ArrayLike,
+    *,
+    n: int| None = None
+    window: str| None = None
+    ) -> NDArray[np.complex128]:
+    """
+    Parameters
+    ----------
+    find the ratio of the fast fourier transform between the input x and output y
+    x: array-like data array
+    y: array like data array
+    n: int or none, optional parameter (will use none if nothing provided)
+    window: str or none, optional parameter (will use none if nothing provided)
+    Returns
+    ----------
+    NDArray[np.complex128]: returns the etfe as an array
+    Raises
+    ----------
+    ValueError: if x contains zeroes, a ValueError is raised to avoid division by zero
+     
+    """
+    x_fft=thz.fft(x,n,window)
+    y_fft=thz.fft(y,n,window)
+
+    if np.any(x_fft == 0):
+        msg = "fft of x contains zero values, leading to division by zero."
+        raise ValueError(msg)
+    else:
+        xy_etfe = (y_fft/x_fft)
+        return xy_etfe

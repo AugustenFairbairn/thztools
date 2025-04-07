@@ -3428,7 +3428,7 @@ def etfe(
     x:ArrayLike,
     y:ArrayLike,
     *,
-    n: int| None = None
+    n: int| None = None,
     window: str| None = None
     ) -> NDArray[np.complex128]:
     """
@@ -3445,14 +3445,11 @@ def etfe(
     Raises
     ----------
     ValueError: if x contains zeroes, a ValueError is raised to avoid division by zero
-     
     """
-    x_fft=thz.fft(x,n,window)
-    y_fft=thz.fft(y,n,window)
+    x_fft=fft(x,n,window)
+    y_fft=fft(y,n,window)
 
     if np.any(x_fft == 0):
         msg = "fft of x contains zero values, leading to division by zero."
         raise ValueError(msg)
-    else:
-        xy_etfe = (y_fft/x_fft)
-        return xy_etfe
+    return (y_fft/x_fft)

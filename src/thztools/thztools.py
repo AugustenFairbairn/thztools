@@ -3446,10 +3446,7 @@ def etfe(
     ----------
     ValueError: if x contains zeroes, a ValueError is raised to avoid division by zero
     """
-    x_fft=fft(x,n,window)
-    y_fft=fft(y,n,window)
+    x_f=fft(x,n,window)
+    y_f=fft(y,n,window)
+    return (y_f/x_f)
 
-    if np.any(x_fft == 0):
-        msg = "fft of x contains zero values, leading to division by zero."
-        raise ValueError(msg)
-    return (y_fft/x_fft)

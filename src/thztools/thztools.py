@@ -62,6 +62,7 @@ from numpy.random import default_rng
 from scipy import signal
 from scipy.linalg import sqrtm
 from scipy.optimize import OptimizeResult, approx_fprime, minimize
+from scipy.signal.windows import __all__ as windowlist
 
 if TYPE_CHECKING:
     from numpy.typing import ArrayLike, NDArray
@@ -3424,17 +3425,21 @@ def fit(
         success=bool(result.success),
         diagnostic=result,
     )
+
+
 def etfe(
-    x:ArrayLike,
-    y:ArrayLike,
+    x: ArrayLike,
+    y: ArrayLike,
     *,
-    n: int| None = None,
-    window: str| None = None
-    ) -> NDArray[np.complex128]:
+    n: int | None = None,
+    window: str | None = None,
+) -> NDArray[np.complex128]:
     """
+    Calculates the empirical transfer-function estimate of an input ''x'' and an
+    output ''y'' by taking the ratio of the fast fourier transform between the two inputs.
+    Makes use of the thz.fft function to calculate this, and takes a pad and window variable in order to use this function.
     Parameters
     ----------
-    find the ratio of the fast fourier transform between the input x and output y
     x: array-like data array
     y: array like data array
     n: int or none, optional parameter (will use none if nothing provided)
@@ -3446,7 +3451,26 @@ def etfe(
     ----------
     ValueError: if x contains zeroes, a ValueError is raised to avoid division by zero
     """
-    x_f=fft(x,n,window)
-    y_f=fft(y,n,window)
-    return (y_f/x_f)
+    if len(x) != len(y):
+        xy_len = "Inputs x and y must have the same length."
+        raise ValueError(xy_len)
 
+    n = len(x) if n is None else 2 * (n - 1)
+    if window is None:
+        windx = signal.windows.tukey(len(x)) * x
+        windy = signal.windows.tukey(len(y)) * y
+        x_fft = np.fft.rfft(windx, n)
+    elif window not in windowlist:
+        wind_out_of_range = (
+            "Window parameter only accepts functions in {windowlist}"
+        )
+        raise ValueError(wind_out_of_range)
+    else:
+        wind = signal.windows.get_window(window, len(x))
+        windx = x * wind
+        windy = y * wind
+
+        x_fft = np.fft.rfft(windx, n)
+        y_fft = np.fft.rfft(windy, n)
+
+    return y_fft / x_fft

@@ -3433,44 +3433,59 @@ def etfe(
     *,
     n: int | None = None,
     window: str | None = None,
+    axis: int = -1,
 ) -> NDArray[np.complex128]:
     """
     Calculates the empirical transfer-function estimate of an input ''x'' and an
     output ''y'' by taking the ratio of the fast fourier transform between the two inputs.
-    Makes use of the thz.fft function to calculate this, and takes a pad and window variable in order to use this function.
+    Makes use of the numpy rfft function to calculate this, and takes a pad and window variable in order to use this function.
     Parameters
     ----------
-    x: array-like data array
-    y: array like data array
-    n: int or none, optional parameter (will use none if nothing provided)
-    window: str or none, optional parameter (will use none if nothing provided)
+    x: array-like
+        Input Signal
+    y: array-like
+        Output signal
+    n: int or none, optional parameter (will use None if nothing provided)
+        Length of the fft. If 'n' is greater than 'len(x)', pad zeroes to length of 'n'.
+        If 'n' less than 'len(x)', signal is truncated. if None, uses n equals 'len(x)'.
+    window: str or None, optional (will use None if nothing provided)
+        Name of a window function from 'scipi.signal.windows'. If None, applies a Tukey Window.
+    axis: int or none, optional parameter (will use last value of x array if nothing provided)
+        Direction of fourier transform.
     Returns
     ----------
-    NDArray[np.complex128]: returns the etfe as an array
+    ndarray of complex128
+        Empirical transfer function estimate, i.e. the ratio of the fast fourier transforms of y and x.
+
     Raises
     ----------
-    ValueError: if x contains zeroes, a ValueError is raised to avoid division by zero
+    ValueError
+        If `window` is not a valid name in `scipy.signal.windows`.
     """
-    if len(x) != len(y):
-        xy_len = "Inputs x and y must have the same length."
-        raise ValueError(xy_len)
+    x = np.asarray(x)
+    y = np.asarray(y)
 
-    n = len(x) if n is None else 2 * (n - 1)
+    ax_len = x.shape[axis]
+
+    nfft = ax_len if n is None else n
+
     if window is None:
-        windx = signal.windows.tukey(len(x)) * x
-        windy = signal.windows.tukey(len(y)) * y
-        x_fft = np.fft.rfft(windx, n)
+        win1d = signal.windows.tukey(ax_len)
+        # windx = signal.windows.tukey(len(x)) * x
+        # windy = signal.windows.tukey(len(y)) * y
     elif window not in windowlist:
         wind_out_of_range = (
             "Window parameter only accepts functions in {windowlist}"
         )
         raise ValueError(wind_out_of_range)
     else:
-        wind = signal.windows.get_window(window, len(x))
-        windx = x * wind
-        windy = y * wind
+        win1d = signal.windows.get_window(window, ax_len)
 
-        x_fft = np.fft.rfft(windx, n)
-        y_fft = np.fft.rfft(windy, n)
-
+    shape = [1] * x.ndim
+    shape[axis] = ax_len
+    win = win1d.reshape(shape)
+    windx = x * win
+    windy = y * win
+    x_fft = rfft(windx, n=nfft, axis=axis)
+    y_fft = rfft(windy, n=nfft, axis=axis)
     return y_fft / x_fft

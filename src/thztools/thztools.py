@@ -62,8 +62,7 @@ from numpy.random import default_rng
 from scipy import signal
 from scipy.linalg import sqrtm
 from scipy.optimize import OptimizeResult, approx_fprime, minimize
-from scipy.signal.windows import __all__ as windowlist
-
+from scipy.signal import windows
 if TYPE_CHECKING:
     from numpy.typing import ArrayLike, NDArray
 
@@ -3453,15 +3452,33 @@ def etfe(
     axis: int or none, optional parameter (will use last value of x array if nothing provided)
         Direction of fourier transform.
     Returns
-    ----------
+    -------
     ndarray of complex128
         Empirical transfer function estimate, i.e. the ratio of the fast fourier transforms of y and x.
 
     Raises
-    ----------
+    ------
     ValueError
         If `window` is not a valid name in `scipy.signal.windows`.
+
+    Notes
+    -----
+    Given time signals :math:`x[n]` and :math:`y[n]`, this function
+    computes:
+
+    .. math::
+
+        H(f) = \\frac{\\mathcal{F}\\{ y[n] \\}}
+                    {\\mathcal{F}\\{ x[n] \\}}
+    where :math:`\\mathcal{F}\\}` is the fourier transform along the specified axis.
+    The FFT length can be specified
+    explicitly with ``n`` and otherwise defaults to the signal length along ``axis``. 
+
+    
+
     """
+    windowlist = windows.__all__
+
     x = np.asarray(x)
     y = np.asarray(y)
 

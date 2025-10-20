@@ -3473,8 +3473,40 @@ def etfe(
     where :math:`\\mathcal{F}\\}` is the fourier transform along the specified axis.
     The FFT length can be specified
     explicitly with ``n`` and otherwise defaults to the signal length along ``axis``. 
+    Examples
 
-    
+    --------
+    calculates a frequency response function using the etfe of x and y parameters, generated using
+    thz.apply_frf.
+
+    .. math:: H(\omega) = a\exp(-i\omega\tau).
+
+    >>> import numpy as np
+    >>> import thztools as thz
+    >>> from matplotlib import pyplot as plt
+    >>> n, dt = 256, 0.05
+    >>> fs = 1.0/dt
+    >>> f = np.fft.fftshift(np.fft.fftfreq(n, d=dt))
+    >>> x = thz.wave(n, dt=dt)
+    >>> def shiftscale(_w, _a, _tau):
+    ...     return _a * np.exp(-1j * _w * _tau)
+    >>>
+    >>> y = thz.apply_frf(
+    ...     shiftscale, x, dt=dt, numpy_sign_convention=True, args=(0.5, 1)
+    ... )
+    >>> h = thz.etfe(x, y, n)
+
+    >>> _, (ax1, ax2) = plt.subplots(2,1, sharex=true, figsize(8,6)))
+    >>> ax1.plot(f,h.real,label="Re(H(w))")
+    >>> ax1.legend()
+    >>> ax1.set_xlabel("frequency (THz)")
+    >>> ax1.set_ylabel("Amplitude (arb. units)")
+    >>>
+    >>> ax2.plot(f,h.imag,label="Im(H(w))")
+    >>> ax2.legend()
+    >>> ax2.set_xlabel("frequency (THz)")
+    >>> ax2.set_ylabel("Amplitude (arb. units)"
+    >>> plt.show()
 
     """
     windowlist = windows.__all__
